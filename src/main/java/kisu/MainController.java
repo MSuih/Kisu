@@ -48,7 +48,7 @@ public class MainController {
 
     public void onStartup() {
         Objects.requireNonNull(pineClient, "IPC client must be started first");
-        activeModules.forEach(m -> m.onLaunch(pineClient));
+        activeModules.forEach(KisuPlugin::init);
     }
 
     public Optional<PineClient.GameInfo> getGame() {

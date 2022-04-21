@@ -8,10 +8,8 @@ import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.shape.Rectangle;
-import mouse.AbstractKisuPlugin;
+import mouse.KisuEnvironment;
 import mouse.KisuPlugin;
-import mouse.PluginInformation;
 import pinej.PineEnums;
 
 import java.util.ArrayList;
@@ -27,7 +25,7 @@ public class PluginManagementView extends HBox {
 
     private final Map<TreeItem<String>, SelectablePlugin> pluginMap = new IdentityHashMap<>();
 
-    private record SelectablePlugin(CheckBox checkBox, KisuPlugin module) {}
+    private record SelectablePlugin(CheckBox checkBox, CompiledPlugin plugin) {}
 
     public PluginManagementView() {
         TreeItem<String> rootItem = new TreeItem<>("Emulators");
@@ -42,9 +40,7 @@ public class PluginManagementView extends HBox {
         TreeView<String> treeView = new TreeView<>(rootItem);
         treeView.setShowRoot(false);
         Button load = new Button("Load plugins");
-        load.setOnAction(a ->  {
-            loadPlugins().forEach(this::addPlugin);
-        });
+        load.setOnAction(a -> loadPlugins().forEach(this::addPlugin));
 
         VBox listBox = new VBox(treeView, load);
         
@@ -57,14 +53,14 @@ public class PluginManagementView extends HBox {
             if (n == null || !pluginMap.containsKey(n)) {
                 details.setText("");
             } else {
-                details.setText(getDetails(pluginMap.get(n).module.getInfo()));
+                details.setText(getDetails(pluginMap.get(n).plugin().information()));
             }
         });
         this.setSpacing(10);
         this.getChildren().addAll(listBox, details);
     }
 
-    private String getDetails(PluginInformation info) {
+    private String getDetails(CompiledPlugin.Information info) {
         return
                 """
                 %s
@@ -78,22 +74,21 @@ public class PluginManagementView extends HBox {
                 For:
                 %s %s
                 %s
-                """.formatted(info.name(), info.author(), info.moduleVersion(), info.description(), info.gameSerial(), info.gameVersion() != null ? info.gameVersion() : "All versions", info.gameHash());
+                """.formatted(info.name(), info.author(), info.version(), info.description(), info.serial(), info.gameVersion() != null ? info.gameVersion() : "All versions", info.hash());
     }
 
-    private void addPlugin(KisuPlugin plugin) {
-        PluginInformation info = plugin.getInfo();
+    private void addPlugin(CompiledPlugin plugin) {
+        CompiledPlugin.Information info = plugin.information();
 
         TreeItem<String> root;
-        if (PineEnums.TargetPlatform.PS2 == info.platform()) {
+        if (info.platform() == PineEnums.TargetPlatform.PS2) {
             root = pcsx2;
         } else {
             root = rpcs3;
         }
 
-        TreeItem<String> game = root.getChildren().stream().filter(i -> Objects.equals(i.getValue(), info.gameSerial())).findAny().orElseGet(() -> {
-            TreeItem<String> item = new TreeItem<>(info.gameSerial());
-            item.setGraphic(new Rectangle());
+        TreeItem<String> game = root.getChildren().stream().filter(i -> Objects.equals(i.getValue(), info.serial())).findAny().orElseGet(() -> {
+            TreeItem<String> item = new TreeItem<>(info.serial());
             root.getChildren().add(item);
             return item;
         });
@@ -111,25 +106,37 @@ public class PluginManagementView extends HBox {
         version.getChildren().add(moduleItem);
     }
 
-    private List<KisuPlugin> loadPlugins() {
+    private List<CompiledPlugin> loadPlugins() {
         // TODO: Implement actual loading
-        List<KisuPlugin> modules = new ArrayList<>(8);
-        modules.add(new AbstractKisuPlugin(new PluginInformation(PineEnums.TargetPlatform.PS3, "Cool plugin", "Test", "1.0", "BLES12345", "asdf", null, "This is the description for this particular item\n\nIt supports newlines too, and and wrapping on long lines!")){});
-        modules.add(new AbstractKisuPlugin(new PluginInformation(PineEnums.TargetPlatform.PS3, "Sweet plugin", "Test", "1.0", "BLES12345", "asdf", null, "This is the description for this particular item\n\nIt supports newlines too, and and wrapping on long lines!")){});
-        modules.add(new AbstractKisuPlugin(new PluginInformation(PineEnums.TargetPlatform.PS3, "Neat plugin", "Test", "1.0", "BLES22222", "asdf", null, "This is the description for this particular item\n\nIt supports newlines too, and and wrapping on long lines!")){});
-        modules.add(new AbstractKisuPlugin(new PluginInformation(PineEnums.TargetPlatform.PS3, "Amazing plugin", "Test", "1.0", "BLES12345", "asdf", "01.00", "This is the description for this particular item\n\nIt supports newlines too, and and wrapping on long lines!")){});
+        List<CompiledPlugin> modules = new ArrayList<>(8);
+        KisuPlugin testPlugin = new KisuPlugin() {
+            @Override
+            public void init() {
 
-        modules.add(new AbstractKisuPlugin(new PluginInformation(PineEnums.TargetPlatform.PS2, "Odd plugin", "Test", "1.0", "SLES12345", "asdf", null, "This is the description for this particular item\n\nIt supports newlines too, and and wrapping on long lines!")){});
-        modules.add(new AbstractKisuPlugin(new PluginInformation(PineEnums.TargetPlatform.PS2, "Questionable plugin", "Test", "1.0", "SLES12345", "asdf", null, "This is the description for this particular item\n\nIt supports newlines too, and and wrapping on long lines!")){});
-        modules.add(new AbstractKisuPlugin(new PluginInformation(PineEnums.TargetPlatform.PS2, "Strange plugin", "Test", "1.0", "SLES44444", "asdf", null, "This is the description for this particular item\n\nIt supports newlines too, and and wrapping on long lines!")){});
-        modules.add(new AbstractKisuPlugin(new PluginInformation(PineEnums.TargetPlatform.PS2, "Weird plugin", "Test", "1.0", "SLES12345", "asdf", null, "This is the description for this particular item\n\nIt supports newlines too, and and wrapping on long lines!")){});
+            }
+
+            @Override
+            public void onTick(KisuEnvironment env) {
+
+            }
+
+            @Override
+            public void close() {
+
+            }
+        };
+        modules.add(new CompiledPlugin(testPlugin, new CompiledPlugin.Information(PineEnums.TargetPlatform.PS3, "Cool plugin", "Testing author", "1.0", "This is a neat description", "BLUS12345", "01.00", null)));
+        modules.add(new CompiledPlugin(testPlugin, new CompiledPlugin.Information(PineEnums.TargetPlatform.PS3, "Interesting plugin", "Testing author", "1.0", "This is a neat description", "BLUS12345", "01.00", null)));
+        modules.add(new CompiledPlugin(testPlugin, new CompiledPlugin.Information(PineEnums.TargetPlatform.PS3, "Neat plugin", "Testing author", "1.0", "This is a neat description", "BLUS12345", "01.00", null)));
+        modules.add(new CompiledPlugin(testPlugin, new CompiledPlugin.Information(PineEnums.TargetPlatform.PS3, "Fun plugin", "Testing author", "1.0", "This is a neat description", "BLUS12345",null , null)));
         return modules;
     }
 
-    public List<KisuPlugin> getSelectedModules() {
+    public List<KisuPlugin> getSelectedPlugins() {
         return pluginMap.values().stream()
                 .filter(m -> m.checkBox.isSelected())
-                .map(SelectablePlugin::module)
+                .map(SelectablePlugin::plugin)
+                .map(CompiledPlugin::plugin)
                 .collect(Collectors.toList());
     }
 }

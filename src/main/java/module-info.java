@@ -6,6 +6,7 @@ module kisu {
 
     requires pinej;
     requires kisu.plugins;
+    requires org.jooq.joor;
 
     opens kisu to javafx.graphics;
     opens kisu.exceptions to javafx.graphics;

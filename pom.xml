@@ -15,8 +15,11 @@
 
         <javafx.version>18</javafx.version>
         <javafx.maven.plugin.version>0.0.7</javafx.maven.plugin.version>
+
         <slf4j.version>1.7.36</slf4j.version>
         <logback.version>1.2.11</logback.version>
+
+        <joor.version>0.9.14</joor.version>
 
         <pine-j.version>1.0-SNAPSHOT</pine-j.version>
         <kisu-plugins.version>1.0-SNAPSHOT</kisu-plugins.version>
@@ -38,6 +41,12 @@
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
             <version>${logback.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jooq</groupId>
+            <artifactId>joor</artifactId>
+            <version>0.9.14</version>
         </dependency>
 
         <dependency>

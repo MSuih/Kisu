@@ -163,7 +163,7 @@ public class MainView extends VBox {
 
         Optional<ButtonType> buttonType = dialog.showAndWait();
         if (buttonType.isPresent() && buttonType.get() == save) {
-            pluginController.setPlugins(pluginManagementView.getSelectedModules());
+            pluginController.setPlugins(pluginManagementView.getSelectedPlugins());
         }
         plugins.setText(pluginController.getLoadedPlugins() + " plugins selected");
     }
